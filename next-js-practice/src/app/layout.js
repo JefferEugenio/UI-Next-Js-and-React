@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import SignOutButton from "../components/auth/SignOutButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Flowline | Task workspace",
+  title: "Task workspace",
   description: "A focused workspace for managing team tasks.",
 };
 
@@ -26,22 +27,17 @@ function Header() {
           aria-label="Primary navigation"
         >
           <Link href="/" className="text-lg font-bold tracking-tight text-ink">
-            flowline<span className="text-terracotta">.</span>
+            Task workspace
           </Link>
           <div className="hidden items-center gap-6 text-sm font-medium text-muted sm:flex">
             <Link href="/" className="text-ink">
               Workspace
             </Link>
-            <Link href="/mountain" className="hover:text-ink">
-              Projects
-            </Link>
-            <Link href="/contact" className="hover:text-ink">
-              Team
-            </Link>
           </div>
         </nav>
         <div className="flex items-center gap-3">
           <span className="hidden text-sm text-muted md:block">Maya Chen</span>
+          <SignOutButton />
           <span
             className="flex size-9 items-center justify-center rounded-full bg-sage text-sm font-semibold text-white"
             aria-label="Maya Chen profile"

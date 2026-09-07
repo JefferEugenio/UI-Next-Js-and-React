@@ -33,7 +33,7 @@ describe("TaskForm", () => {
         expect.objectContaining({
           title: "Review the dashboard",
           owner: "Maya Chen",
-          status: "Todo",
+          status: "TODO",
         }),
       );
     });

@@ -6,10 +6,11 @@ const emptyForm = {
   title: "",
   project: "Task Management Dashboard",
   dueDate: "",
+  status: "TODO",
 };
 
-export default function TaskForm({ onAddTask, onCancel }) {
-  const [form, setForm] = useState(emptyForm);
+export default function TaskForm({ onAddTask, onCancel, initialTask }) {
+  const [form, setForm] = useState(initialTask || emptyForm);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [file, setFile] = useState(null);
@@ -83,7 +84,7 @@ export default function TaskForm({ onAddTask, onCancel }) {
           year: "numeric",
         }),
         owner: "Maya Chen",
-        status: "Todo",
+        status: form.status,
         attachmentName: file?.name || "",
       });
       setForm(emptyForm);
@@ -131,6 +132,15 @@ export default function TaskForm({ onAddTask, onCancel }) {
         </div>
 
         <div>
+          <label htmlFor="task-status" className="text-sm font-semibold text-ink">Status</label>
+          <select id="task-status" name="status" value={form.status} onChange={handleChange} className="mt-2 min-h-11 w-full rounded-lg border border-line bg-white px-3 text-sm text-ink outline-none ring-terracotta focus:ring-2">
+            <option value="TODO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+          </select>
+        </div>
+
+        <div>
           <label htmlFor="task-due-date" className="text-sm font-semibold text-ink">Due date</label>
           <input
             id="task-due-date"
@@ -160,7 +170,7 @@ export default function TaskForm({ onAddTask, onCancel }) {
 
         <div className="flex gap-2 md:justify-end">
           <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-muted hover:bg-white hover:text-ink disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
-          <button type="submit" disabled={isSubmitting} className="min-h-11 rounded-lg bg-ink px-4 text-sm font-semibold text-white hover:bg-[#23352e] disabled:cursor-wait disabled:opacity-60">{isSubmitting ? "Saving..." : "Add task"}</button>
+          <button type="submit" disabled={isSubmitting} className="min-h-11 rounded-lg bg-ink px-4 text-sm font-semibold text-white hover:bg-[#23352e] disabled:cursor-wait disabled:opacity-60">{isSubmitting ? "Saving..." : initialTask ? "Update task" : "Add task"}</button>
         </div>
       </div>
       {message && <p className="mt-4 text-sm font-medium text-sage" role="status">{message}</p>}

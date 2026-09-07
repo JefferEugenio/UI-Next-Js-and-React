@@ -1,13 +1,31 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { auth, findMany, create } = vi.hoisted(() => ({
+  auth: vi.fn(),
+  findMany: vi.fn(),
+  create: vi.fn(),
+}));
+
+vi.mock("../../../../auth", () => ({ auth }));
+vi.mock("../../../lib/prisma", () => ({
+  prisma: { task: { findMany, create } },
+}));
+
 import { GET, POST } from "./route";
 
 describe("tasks API", () => {
+  beforeEach(() => {
+    auth.mockResolvedValue({ user: { id: "user-1" } });
+    findMany.mockResolvedValue([]);
+    create.mockImplementation(async ({ data }) => ({ id: "task-1", ...data }));
+  });
+
   it("returns the current tasks", async () => {
     const response = await GET();
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.tasks.length).toBeGreaterThan(0);
+    expect(body.tasks).toEqual([]);
   });
 
   it("creates a task with the expected defaults", async () => {
@@ -24,8 +42,7 @@ describe("tasks API", () => {
 
     expect(response.status).toBe(201);
     expect(body.task.title).toBe("Test keyboard navigation");
-    expect(body.task.owner).toBe("Maya Chen");
-    expect(body.task.status).toBe("Todo");
+    expect(body.task.status).toBe("TODO");
   });
 
   it("rejects a task without a title or due date", async () => {

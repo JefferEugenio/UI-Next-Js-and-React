@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Task Management Dashboard
 
-## Getting Started
+Next.js application for the frontend learning path. It uses Auth.js credentials authentication and Prisma with PostgreSQL for persistent task data.
 
-First, run the development server:
+## Local setup
+
+1. Copy `.env.example` to `.env`.
+2. Set `DATABASE_URL` to a PostgreSQL connection string.
+3. Generate the Prisma client:
+
+```bash
+npm run db:generate
+```
+
+4. Create the database tables:
+
+```bash
+npm run db:push
+```
+
+5. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create an account at `/register`, then sign in at `/login`.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Vercel deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Import this repository into Vercel and set the project root to `next-js-practice`.
+2. Create a PostgreSQL database through Vercel Marketplace, Neon, or another hosted PostgreSQL provider.
+3. Add these Vercel environment variables for Preview and Production:
 
-## Learn More
+```text
+DATABASE_URL
+AUTH_SECRET
+AUTH_URL
+```
 
-To learn more about Next.js, take a look at the following resources:
+Set `AUTH_URL` to the deployed app URL. Run the database schema step against the hosted database before first use:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run db:push
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The task API is protected by the authenticated user session. Users can create, read, update, and delete only their own tasks.
 
-## Deploy on Vercel
+## Checks
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+npm run build
+```

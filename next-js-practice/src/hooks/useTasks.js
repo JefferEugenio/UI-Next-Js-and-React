@@ -17,7 +17,7 @@ export default function useTasks() {
         }
 
         const data = await response.json();
-        setTasks(data.tasks);
+        setTasks(data.tasks.map(formatTask));
       } catch {
         setLoadError("We could not load your tasks. Refresh and try again.");
       } finally {
@@ -40,8 +40,40 @@ export default function useTasks() {
     }
 
     const data = await response.json();
-    setTasks((currentTasks) => [data.task, ...currentTasks]);
+    setTasks((currentTasks) => [formatTask(data.task), ...currentTasks]);
   }
 
-  return { tasks, addTask, isLoading, loadError };
+  async function updateTask(id, task) {
+    const response = await fetch(`/api/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(task),
+    });
+
+    if (!response.ok) throw new Error("Could not update task.");
+
+    const data = await response.json();
+    setTasks((currentTasks) =>
+      currentTasks.map((currentTask) =>
+        currentTask.id === id ? formatTask(data.task) : currentTask,
+      ),
+    );
+  }
+
+  async function deleteTask(id) {
+    const response = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+
+    if (!response.ok) throw new Error("Could not delete task.");
+
+    setTasks((currentTasks) => currentTasks.filter((task) => task.id !== id));
+  }
+
+  return { tasks, addTask, updateTask, deleteTask, isLoading, loadError };
+}
+
+function formatTask(task) {
+  return {
+    ...task,
+    dueDate: task.dueDate?.slice(0, 10),
+  };
 }

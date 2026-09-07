@@ -1,8 +1,8 @@
 import StatCard from "./StatCard";
 
 export default function TaskSummary({ tasks }) {
-  const openTasks = tasks.filter((task) => task.status !== "Done").length;
-  const inProgressTasks = tasks.filter((task) => task.status === "InProgress").length;
+  const openTasks = tasks.filter((task) => task.status !== "DONE").length;
+  const inProgressTasks = tasks.filter((task) => task.status === "IN_PROGRESS").length;
 
   return (
     <section className="grid gap-6 border-b border-line py-8 sm:grid-cols-3" aria-label="Task summary">

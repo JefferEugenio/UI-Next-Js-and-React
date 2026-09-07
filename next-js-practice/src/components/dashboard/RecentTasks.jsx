@@ -1,6 +1,6 @@
 import TaskTable from "./TaskTable";
 
-export default function RecentTasks({ tasks, isLoading, loadError }) {
+export default function RecentTasks({ tasks, isLoading, loadError, onEdit, onDelete }) {
   return (
     <section className="pt-8">
       <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
@@ -13,7 +13,7 @@ export default function RecentTasks({ tasks, isLoading, loadError }) {
       <div className="overflow-hidden rounded-xl border border-line bg-white">
         {isLoading && <p className="px-5 py-8 text-sm text-muted">Loading tasks...</p>}
         {loadError && <p className="px-5 py-8 text-sm text-terracotta" role="alert">{loadError}</p>}
-        {!isLoading && !loadError && <TaskTable tasks={tasks} />}
+        {!isLoading && !loadError && <TaskTable tasks={tasks} onEdit={onEdit} onDelete={onDelete} />}
       </div>
     </section>
   );
