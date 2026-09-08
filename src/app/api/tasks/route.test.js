@@ -16,7 +16,7 @@ import { GET, POST } from "./route";
 
 describe("tasks API", () => {
   beforeEach(() => {
-    auth.mockResolvedValue({ user: { id: "user-1" } });
+    auth.mockResolvedValue({ user: { id: 1 } });
     findMany.mockResolvedValue([]);
     findProject.mockResolvedValue({ id: 1, name: "Task Management Dashboard" });
     create.mockImplementation(async ({ data }) => ({ id: "task-1", ...data }));

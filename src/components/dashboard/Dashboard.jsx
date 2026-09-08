@@ -15,16 +15,21 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [startModalEditing, setStartModalEditing] = useState(false);
 
   function openCreateForm() {
     setEditingTask(null);
     setIsFormOpen(true);
   }
 
-  function openEditForm(task) {
-    setSelectedTask(null);
-    setEditingTask(task);
-    setIsFormOpen(true);
+  function openTaskPreview(task) {
+    setStartModalEditing(false);
+    setSelectedTask(task);
+  }
+
+  function openTaskEditor(task) {
+    setStartModalEditing(true);
+    setSelectedTask(task);
   }
 
   async function saveTask(task) {
@@ -42,6 +47,8 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
       await deleteTask(id);
     }
   }
+
+  const canEditSelectedTask = userRole === "ADMIN" || Number(selectedTask?.userId) === Number(userId);
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
@@ -66,8 +73,8 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
       )}
 
       <TaskSummary tasks={tasks} />
-      <RecentTasks tasks={tasks} isLoading={isLoading} loadError={loadError} currentUserId={userId} userRole={userRole} onOpen={setSelectedTask} onEdit={openEditForm} onDelete={removeTask} />
-      <TaskDetails task={selectedTask} onClose={() => setSelectedTask(null)} onEdit={openEditForm} />
+      <RecentTasks tasks={tasks} isLoading={isLoading} loadError={loadError} currentUserId={userId} userRole={userRole} onOpen={openTaskPreview} onEdit={openTaskEditor} onDelete={removeTask} />
+      <TaskDetails task={selectedTask} projects={projects} canEdit={canEditSelectedTask} startEditing={startModalEditing} onClose={() => { setSelectedTask(null); setStartModalEditing(false); }} onUpdate={updateTask} />
     </main>
   );
 }

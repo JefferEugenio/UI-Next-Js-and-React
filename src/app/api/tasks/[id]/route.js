@@ -15,6 +15,16 @@ async function getAccessibleTask(id) {
     };
   }
 
+  const userId = Number(session.user.id);
+  if (!Number.isInteger(userId)) {
+    return {
+      error: Response.json(
+        { error: "Your session is invalid. Please sign in again." },
+        { status: 401 },
+      ),
+    };
+  }
+
   const taskId = Number(id);
   if (!Number.isInteger(taskId)) {
     return {
@@ -24,9 +34,7 @@ async function getAccessibleTask(id) {
 
   const task = await prisma.task.findFirst({
     where:
-      session.user.role === "ADMIN"
-        ? { id: taskId }
-        : { id: taskId, userId: session.user.id },
+      session.user.role === "ADMIN" ? { id: taskId } : { id: taskId, userId },
   });
 
   if (!task) {
@@ -35,11 +43,12 @@ async function getAccessibleTask(id) {
     };
   }
 
-  return { task, session };
+  return { task, session, userId };
 }
 
 export async function PATCH(request, { params }) {
-  const { task, error, session } = await getAccessibleTask(params.id);
+  const { id } = await params;
+  const { task, error, session, userId } = await getAccessibleTask(id);
 
   if (error) return error;
 
@@ -56,7 +65,7 @@ export async function PATCH(request, { params }) {
 
   const project = projectId
     ? await prisma.project.findFirst({
-        where: { id: projectId, userId: session.user.id },
+        where: { id: projectId, userId },
       })
     : null;
 
@@ -64,26 +73,43 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: "Project not found." }, { status: 404 });
   }
 
-  const updatedTask = await prisma.task.update({
-    where: { id: task.id },
-    data: {
-      title: updates.title?.trim() || task.title,
-      description: updates.description?.trim() || null,
-      project: project?.name || updates.project || task.project,
-      projectId:
-        updates.projectId === null ? null : (projectId ?? task.projectId),
-      dueDate: updates.dueDate ? new Date(updates.dueDate) : task.dueDate,
-      status: updates.status || task.status,
-      attachmentName: updates.attachmentName ?? task.attachmentName,
-    },
-    include: { user: { select: { name: true } }, projectRef: true },
-  });
+  const dueDate = updates.dueDate ? new Date(updates.dueDate) : task.dueDate;
+  if (Number.isNaN(dueDate.getTime())) {
+    return Response.json(
+      { error: "Choose a valid due date." },
+      { status: 400 },
+    );
+  }
 
-  return Response.json({ task: updatedTask });
+  try {
+    const updatedTask = await prisma.task.update({
+      where: { id: task.id },
+      data: {
+        title: updates.title?.trim() || task.title,
+        description: updates.description?.trim() || null,
+        project: project?.name || updates.project || task.project,
+        projectId:
+          updates.projectId === null ? null : (projectId ?? task.projectId),
+        dueDate,
+        status: updates.status || task.status,
+        attachmentName: updates.attachmentName ?? task.attachmentName,
+      },
+      include: { user: { select: { name: true } }, projectRef: true },
+    });
+
+    return Response.json({ task: updatedTask });
+  } catch (updateError) {
+    console.error("Failed to update task:", updateError);
+    return Response.json(
+      { error: "The task could not be updated. Try again shortly." },
+      { status: 500 },
+    );
+  }
 }
 
 export async function DELETE(request, { params }) {
-  const { task, error } = await getAccessibleTask(params.id);
+  const { id } = await params;
+  const { task, error } = await getAccessibleTask(id);
 
   if (error) return error;
 

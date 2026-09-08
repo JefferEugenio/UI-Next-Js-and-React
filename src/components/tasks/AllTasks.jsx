@@ -5,11 +5,14 @@ import Link from "next/link";
 import useTasks from "../../hooks/useTasks";
 import TaskDetails from "../dashboard/TaskDetails";
 import TaskTable from "../dashboard/TaskTable";
+import useProjects from "../../hooks/useProjects";
 
 export default function AllTasks({ userId, userRole }) {
-  const { tasks, isLoading, loadError } = useTasks();
+  const { tasks, updateTask, isLoading, loadError } = useTasks();
+  const { projects } = useProjects();
   const [filters, setFilters] = useState({ id: "", name: "", user: "" });
   const [selectedTask, setSelectedTask] = useState(null);
+  const [startModalEditing, setStartModalEditing] = useState(false);
 
   const filteredTasks = useMemo(() => {
     const idFilter = filters.id.trim().toLowerCase();
@@ -36,6 +39,18 @@ export default function AllTasks({ userId, userRole }) {
   function clearFilters() {
     setFilters({ id: "", name: "", user: "" });
   }
+
+  function openTaskPreview(task) {
+    setStartModalEditing(false);
+    setSelectedTask(task);
+  }
+
+  function openTaskEditor(task) {
+    setStartModalEditing(true);
+    setSelectedTask(task);
+  }
+
+  const canEditSelectedTask = userRole === "ADMIN" || Number(selectedTask?.userId) === Number(userId);
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
@@ -70,9 +85,9 @@ export default function AllTasks({ userId, userRole }) {
         {isLoading && <p className="px-5 py-8 text-sm text-muted">Loading tasks...</p>}
         {loadError && <p className="px-5 py-8 text-sm text-terracotta" role="alert">{loadError}</p>}
         {!isLoading && !loadError && filteredTasks.length === 0 && <p className="px-5 py-8 text-sm text-muted">No tasks match these filters.</p>}
-        {!isLoading && !loadError && filteredTasks.length > 0 && <TaskTable tasks={filteredTasks} currentUserId={userId} userRole={userRole} showActions={false} onOpen={setSelectedTask} onEdit={() => {}} onDelete={() => {}} />}
+        {!isLoading && !loadError && filteredTasks.length > 0 && <TaskTable tasks={filteredTasks} currentUserId={userId} userRole={userRole} showActions={false} onOpen={openTaskPreview} onEdit={openTaskEditor} onDelete={() => {}} />}
       </section>
-      <TaskDetails task={selectedTask} onClose={() => setSelectedTask(null)} onEdit={() => setSelectedTask(null)} />
+      <TaskDetails task={selectedTask} projects={projects} canEdit={canEditSelectedTask} startEditing={startModalEditing} onClose={() => { setSelectedTask(null); setStartModalEditing(false); }} onUpdate={updateTask} />
     </main>
   );
 }

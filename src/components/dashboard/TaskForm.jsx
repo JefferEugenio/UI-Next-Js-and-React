@@ -12,12 +12,18 @@ const emptyForm = {
 };
 
 export default function TaskForm({ onAddTask, onCancel, initialTask, projects = [] }) {
-  const [form, setForm] = useState(initialTask ? { ...initialTask, projectId: String(initialTask.projectId ?? "") } : emptyForm);
+  const [form, setForm] = useState(() => getFormValues(initialTask));
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setForm(getFormValues(initialTask));
+    setErrors({});
+    setMessage("");
+  }, [initialTask]);
 
   useEffect(() => {
     return () => {
@@ -99,7 +105,7 @@ export default function TaskForm({ onAddTask, onCancel, initialTask, projects = 
       setFile(null);
       setPreviewUrl("");
       setErrors({});
-      setMessage("Task added to your workspace.");
+      setMessage(initialTask ? "Task updated in your workspace." : "Task added to your workspace.");
     } catch (error) {
       setMessage(error.message || "We could not save the task. Try again.");
     } finally {
@@ -140,19 +146,6 @@ export default function TaskForm({ onAddTask, onCancel, initialTask, projects = 
           {errors.projectId && <p className="mt-1 text-sm text-terracotta">{errors.projectId}</p>}
         </div>
 
-        <div className="md:col-span-2">
-          <label htmlFor="task-description" className="text-sm font-semibold text-ink">Description <span className="font-normal text-muted">(optional)</span></label>
-          <textarea
-            id="task-description"
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            placeholder="Add context or acceptance criteria"
-            rows="3"
-            className="mt-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none ring-terracotta placeholder:text-muted focus:ring-2"
-          />
-        </div>
-
         <div>
           <label htmlFor="task-status" className="text-sm font-semibold text-ink">Status</label>
           <select id="task-status" name="status" value={form.status} onChange={handleChange} className="mt-2 min-h-11 w-full rounded-lg border border-line bg-white px-3 text-sm text-ink outline-none ring-terracotta focus:ring-2">
@@ -190,6 +183,19 @@ export default function TaskForm({ onAddTask, onCancel, initialTask, projects = 
           {previewUrl && <img src={previewUrl} alt="Attachment preview" className="mt-2 h-16 w-16 rounded object-cover" />}
         </div>
 
+        <div className="md:col-span-4">
+          <label htmlFor="task-description" className="text-sm font-semibold text-ink">Description <span className="font-normal text-muted">(optional)</span></label>
+          <textarea
+            id="task-description"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Add context or acceptance criteria"
+            rows="3"
+            className="mt-2 block min-h-24 w-full resize-none rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none ring-terracotta placeholder:text-muted focus:ring-2"
+          />
+        </div>
+
         <div className="flex gap-2 md:justify-end">
           <button type="button" onClick={onCancel} disabled={isSubmitting} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-muted hover:bg-white hover:text-ink disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
           <button type="submit" disabled={isSubmitting} className="min-h-11 rounded-lg bg-ink px-4 text-sm font-semibold text-white hover:bg-[#23352e] disabled:cursor-wait disabled:opacity-60">{isSubmitting ? "Saving..." : initialTask ? "Update task" : "Add task"}</button>
@@ -198,4 +204,19 @@ export default function TaskForm({ onAddTask, onCancel, initialTask, projects = 
       {message && <p className={`mt-4 text-sm font-medium ${message.includes("added") || message.includes("updated") ? "text-sage" : "text-terracotta"}`} role="alert">{message}</p>}
     </form>
   );
+}
+
+function getFormValues(task) {
+  if (!task) return emptyForm;
+
+  return {
+    ...emptyForm,
+    ...task,
+    title: task.title || "",
+    description: task.description || "",
+    project: task.project || "",
+    projectId: String(task.projectId ?? ""),
+    dueDate: task.dueDate?.slice(0, 10) || "",
+    status: task.status || "TODO",
+  };
 }

@@ -35,7 +35,8 @@ async function getOwnedProject(id) {
 }
 
 export async function PATCH(request, { params }) {
-  const { project, error } = await getOwnedProject(params.id);
+  const { id } = await params;
+  const { project, error } = await getOwnedProject(id);
   if (error) return error;
 
   const { name } = await request.json();
@@ -73,7 +74,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const { project, error } = await getOwnedProject(params.id);
+  const { id } = await params;
+  const { project, error } = await getOwnedProject(id);
   if (error) return error;
 
   try {

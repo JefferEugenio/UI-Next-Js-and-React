@@ -50,6 +50,11 @@ async function Header() {
                 Projects
               </Link>
             )}
+            {session?.user?.role === "ADMIN" && (
+              <Link href="/users" className="hover:text-ink">
+                Users
+              </Link>
+            )}
           </div>
         </nav>
         <div className="flex items-center gap-3">

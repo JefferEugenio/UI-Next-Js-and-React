@@ -1,9 +1,33 @@
-export default function TaskDetails({ task, onClose, onEdit }) {
+"use client";
+
+import { useEffect, useState } from "react";
+import TaskForm from "./TaskForm";
+
+export default function TaskDetails({ task, projects = [], canEdit = false, startEditing = false, onClose, onUpdate }) {
+  const [isEditing, setIsEditing] = useState(startEditing);
+
+  useEffect(() => {
+    setIsEditing(startEditing);
+  }, [task, startEditing]);
+
   if (!task) return null;
 
   return (
     <div className="fixed inset-0 z-10 flex items-center justify-center bg-ink/30 px-5" role="dialog" aria-modal="true" aria-labelledby="task-details-heading">
-      <section className="w-full max-w-xl rounded-xl border border-line bg-white p-6 shadow-xl sm:p-8">
+      <section className={`max-h-[90vh] w-full overflow-y-auto rounded-xl border border-line bg-white p-6 shadow-xl sm:p-8 ${isEditing ? "max-w-4xl" : "max-w-xl"}`}>
+        {isEditing ? (
+          <>
+            <div className="flex items-start justify-between gap-4 px-1 pb-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-terracotta">Edit task</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Update task</h2>
+              </div>
+              <button type="button" onClick={onClose} aria-label="Close task details" className="text-2xl leading-none text-muted hover:text-ink">&times;</button>
+            </div>
+            <TaskForm initialTask={task} projects={projects} onAddTask={async (updates) => { await onUpdate(task.id, updates); onClose(); }} onCancel={() => setIsEditing(false)} />
+          </>
+        ) : (
+          <>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-terracotta">Task details</p>
@@ -23,8 +47,10 @@ export default function TaskDetails({ task, onClose, onEdit }) {
         </div>
         <div className="mt-8 flex justify-end gap-3">
           <button type="button" onClick={onClose} className="min-h-11 rounded-lg border border-line px-4 text-sm font-semibold text-ink hover:bg-mist">Close</button>
-          <button type="button" onClick={() => onEdit(task)} className="min-h-11 rounded-lg bg-ink px-4 text-sm font-semibold text-white hover:bg-[#23352e]">Edit task</button>
+          {canEdit && <button type="button" onClick={() => setIsEditing(true)} className="min-h-11 rounded-lg bg-ink px-4 text-sm font-semibold text-white hover:bg-[#23352e]">Edit task</button>}
         </div>
+          </>
+        )}
       </section>
     </div>
   );
