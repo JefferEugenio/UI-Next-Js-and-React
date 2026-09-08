@@ -3,7 +3,7 @@ import { prisma } from "../../../../lib/prisma";
 
 const validStatuses = ["TODO", "IN_PROGRESS", "DONE"];
 
-async function getOwnedTask(id) {
+async function getAccessibleTask(id) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -15,8 +15,18 @@ async function getOwnedTask(id) {
     };
   }
 
+  const taskId = Number(id);
+  if (!Number.isInteger(taskId)) {
+    return {
+      error: Response.json({ error: "Invalid task ID." }, { status: 400 }),
+    };
+  }
+
   const task = await prisma.task.findFirst({
-    where: { id, userId: session.user.id },
+    where:
+      session.user.role === "ADMIN"
+        ? { id: taskId }
+        : { id: taskId, userId: session.user.id },
   });
 
   if (!task) {
@@ -25,11 +35,11 @@ async function getOwnedTask(id) {
     };
   }
 
-  return { task };
+  return { task, session };
 }
 
 export async function PATCH(request, { params }) {
-  const { task, error } = await getOwnedTask(params.id);
+  const { task, error, session } = await getAccessibleTask(params.id);
 
   if (error) return error;
 
@@ -38,22 +48,42 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: "Invalid task status." }, { status: 400 });
   }
 
+  const projectId = updates.projectId ? Number(updates.projectId) : null;
+
+  if (updates.projectId && !Number.isInteger(projectId)) {
+    return Response.json({ error: "Choose a valid project." }, { status: 400 });
+  }
+
+  const project = projectId
+    ? await prisma.project.findFirst({
+        where: { id: projectId, userId: session.user.id },
+      })
+    : null;
+
+  if (projectId && !project) {
+    return Response.json({ error: "Project not found." }, { status: 404 });
+  }
+
   const updatedTask = await prisma.task.update({
     where: { id: task.id },
     data: {
       title: updates.title?.trim() || task.title,
-      project: updates.project || task.project,
+      description: updates.description?.trim() || null,
+      project: project?.name || updates.project || task.project,
+      projectId:
+        updates.projectId === null ? null : (projectId ?? task.projectId),
       dueDate: updates.dueDate ? new Date(updates.dueDate) : task.dueDate,
       status: updates.status || task.status,
       attachmentName: updates.attachmentName ?? task.attachmentName,
     },
+    include: { user: { select: { name: true } }, projectRef: true },
   });
 
   return Response.json({ task: updatedTask });
 }
 
 export async function DELETE(request, { params }) {
-  const { task, error } = await getOwnedTask(params.id);
+  const { task, error } = await getAccessibleTask(params.id);
 
   if (error) return error;
 

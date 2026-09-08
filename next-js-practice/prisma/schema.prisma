@@ -8,31 +8,55 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           Int      @id @default(autoincrement())
   name         String
   email        String   @unique
   passwordHash String
+  role         UserRole @default(VIEWER)
   createdAt    DateTime @default(now())
   tasks        Task[]
+  projects     Project[]
+}
+
+model Project {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model Task {
-  id             String     @id @default(cuid())
+  id             Int        @id @default(autoincrement())
   title          String
+  description    String?
   project        String     @default("Task Management Dashboard")
+  projectId      Int?
   dueDate        DateTime
   status         TaskStatus  @default(TODO)
   attachmentName String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
-  userId         String
+  userId         Int
   user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectRef     Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([projectId])
 }
 
 enum TaskStatus {
   TODO
   IN_PROGRESS
   DONE
+}
+
+enum UserRole {
+  ADMIN
+  VIEWER
 }

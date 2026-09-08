@@ -46,6 +46,16 @@ npm run db:push
 
 The task API is protected by the authenticated user session. Users can create, read, update, and delete only their own tasks.
 
+## Roles
+
+New accounts receive the `VIEWER` role. Viewers can see the shared task dashboard and manage only their own tasks. `ADMIN` users can view and manage every task.
+
+Promote an account to administrator directly in PostgreSQL:
+
+```sql
+UPDATE "User" SET "role" = 'ADMIN' WHERE "email" = 'admin@example.com';
+```
+
 ## Checks
 
 ```bash

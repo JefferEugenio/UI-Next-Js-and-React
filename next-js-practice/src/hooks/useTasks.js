@@ -35,9 +35,8 @@ export default function useTasks() {
       body: JSON.stringify(task),
     });
 
-    if (!response.ok) {
-      throw new Error("Could not save task.");
-    }
+    if (!response.ok)
+      throw new Error(await getApiError(response, "Could not save task."));
 
     const data = await response.json();
     setTasks((currentTasks) => [formatTask(data.task), ...currentTasks]);
@@ -50,7 +49,8 @@ export default function useTasks() {
       body: JSON.stringify(task),
     });
 
-    if (!response.ok) throw new Error("Could not update task.");
+    if (!response.ok)
+      throw new Error(await getApiError(response, "Could not update task."));
 
     const data = await response.json();
     setTasks((currentTasks) =>
@@ -69,6 +69,15 @@ export default function useTasks() {
   }
 
   return { tasks, addTask, updateTask, deleteTask, isLoading, loadError };
+}
+
+async function getApiError(response, fallback) {
+  try {
+    const data = await response.json();
+    return data.error || fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 function formatTask(task) {

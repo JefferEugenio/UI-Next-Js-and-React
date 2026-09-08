@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   const tasks = await prisma.task.findMany({
-    where: { userId: session.user.id },
+    where: undefined,
     orderBy: { createdAt: "desc" },
     include: { user: { select: { name: true } } },
   });
@@ -30,25 +30,44 @@ export async function POST(request) {
 
   if (
     !task.title?.trim() ||
+    !task.projectId ||
     !task.dueDate ||
     (task.status && !validStatuses.includes(task.status))
   ) {
     return Response.json(
-      { error: "A title and due date are required." },
+      { error: "Task name, project, and due date are required." },
       { status: 400 },
     );
+  }
+
+  const projectId = task.projectId ? Number(task.projectId) : null;
+
+  if (!Number.isInteger(projectId)) {
+    return Response.json({ error: "Choose a valid project." }, { status: 400 });
+  }
+
+  const project = projectId
+    ? await prisma.project.findFirst({
+        where: { id: projectId, userId: session.user.id },
+      })
+    : null;
+
+  if (projectId && !project) {
+    return Response.json({ error: "Project not found." }, { status: 404 });
   }
 
   const newTask = await prisma.task.create({
     data: {
       title: task.title.trim(),
-      project: task.project || "Task Management Dashboard",
+      description: task.description?.trim() || null,
+      project: project?.name || task.project || "Task Management Dashboard",
+      projectId,
       dueDate: new Date(task.dueDate),
       status: task.status || "TODO",
       attachmentName: task.attachmentName || null,
       userId: session.user.id,
     },
-    include: { user: { select: { name: true } } },
+    include: { user: { select: { name: true } }, projectRef: true },
   });
 
   return Response.json({ task: newTask }, { status: 201 });

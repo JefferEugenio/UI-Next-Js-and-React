@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { auth, findMany, create } = vi.hoisted(() => ({
+const { auth, findMany, findProject, create } = vi.hoisted(() => ({
   auth: vi.fn(),
   findMany: vi.fn(),
+  findProject: vi.fn(),
   create: vi.fn(),
 }));
 
 vi.mock("../../../../auth", () => ({ auth }));
 vi.mock("../../../lib/prisma", () => ({
-  prisma: { task: { findMany, create } },
+  prisma: { task: { findMany, create }, project: { findFirst: findProject } },
 }));
 
 import { GET, POST } from "./route";
@@ -17,6 +18,7 @@ describe("tasks API", () => {
   beforeEach(() => {
     auth.mockResolvedValue({ user: { id: "user-1" } });
     findMany.mockResolvedValue([]);
+    findProject.mockResolvedValue({ id: 1, name: "Task Management Dashboard" });
     create.mockImplementation(async ({ data }) => ({ id: "task-1", ...data }));
   });
 
@@ -33,6 +35,7 @@ describe("tasks API", () => {
       method: "POST",
       body: JSON.stringify({
         title: "Test keyboard navigation",
+        projectId: 1,
         dueDate: "Sep 20, 2026",
       }),
     });

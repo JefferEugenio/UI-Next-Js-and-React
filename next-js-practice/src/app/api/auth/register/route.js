@@ -31,6 +31,7 @@ export async function POST(request) {
       name: name.trim(),
       email: normalizedEmail,
       passwordHash: await bcrypt.hash(password, 12),
+      role: "VIEWER",
     },
     select: { id: true, name: true, email: true },
   });
