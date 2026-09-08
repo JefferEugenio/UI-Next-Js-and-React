@@ -21,7 +21,7 @@ async function getOwnedProject(id) {
   }
 
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: session.user.id },
+    where: { id: projectId, userId: Number(session.user.id) },
     include: { _count: { select: { tasks: true } } },
   });
 
@@ -76,13 +76,21 @@ export async function DELETE(request, { params }) {
   const { project, error } = await getOwnedProject(params.id);
   if (error) return error;
 
-  if (project._count.tasks > 0) {
+  try {
+    await prisma.$transaction([
+      prisma.task.updateMany({
+        where: { projectId: project.id },
+        data: { projectId: null },
+      }),
+      prisma.project.delete({ where: { id: project.id } }),
+    ]);
+
+    return new Response(null, { status: 204 });
+  } catch (deleteError) {
+    console.error("Failed to delete project:", deleteError);
     return Response.json(
-      { error: "Move or delete this project's tasks before deleting it." },
-      { status: 409 },
+      { error: "The project could not be deleted. Try again shortly." },
+      { status: 500 },
     );
   }
-
-  await prisma.project.delete({ where: { id: project.id } });
-  return new Response(null, { status: 204 });
 }

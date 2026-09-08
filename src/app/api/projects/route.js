@@ -2,41 +2,55 @@ import { auth } from "../../../../auth";
 import { prisma } from "../../../lib/prisma";
 
 export async function GET() {
-  const session = await auth();
+  try {
+    const session = await auth();
 
-  if (!session?.user?.id) {
-    return Response.json({ error: "You must be signed in." }, { status: 401 });
+    if (!session?.user?.id) {
+      return Response.json(
+        { error: "You must be signed in." },
+        { status: 401 },
+      );
+    }
+
+    const projects = await prisma.project.findMany({
+      where: { userId: Number(session.user.id) },
+      include: { _count: { select: { tasks: true } } },
+      orderBy: { name: "asc" },
+    });
+
+    return Response.json({ projects });
+  } catch (error) {
+    console.error("Failed to load projects:", error);
+    return Response.json(
+      { error: "Projects are temporarily unavailable. Try again shortly." },
+      { status: 500 },
+    );
   }
-
-  const projects = await prisma.project.findMany({
-    where: { userId: session.user.id },
-    include: { _count: { select: { tasks: true } } },
-    orderBy: { name: "asc" },
-  });
-
-  return Response.json({ projects });
 }
 
 export async function POST(request) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return Response.json({ error: "You must be signed in." }, { status: 401 });
-  }
-
-  const { name } = await request.json();
-  const cleanName = name?.trim();
-
-  if (!cleanName) {
-    return Response.json(
-      { error: "A project name is required." },
-      { status: 400 },
-    );
-  }
-
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return Response.json(
+        { error: "You must be signed in." },
+        { status: 401 },
+      );
+    }
+
+    const { name } = await request.json();
+    const cleanName = name?.trim();
+
+    if (!cleanName) {
+      return Response.json(
+        { error: "A project name is required." },
+        { status: 400 },
+      );
+    }
+
     const project = await prisma.project.create({
-      data: { name: cleanName, userId: session.user.id },
+      data: { name: cleanName, userId: Number(session.user.id) },
       include: { _count: { select: { tasks: true } } },
     });
 
@@ -48,6 +62,10 @@ export async function POST(request) {
         { status: 409 },
       );
     }
-    throw error;
+    console.error("Failed to create project:", error);
+    return Response.json(
+      { error: "The project could not be saved. Try again shortly." },
+      { status: 500 },
+    );
   }
 }

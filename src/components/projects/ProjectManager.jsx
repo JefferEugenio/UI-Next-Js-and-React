@@ -33,7 +33,11 @@ export default function ProjectManager() {
   }
 
   async function handleDelete(project) {
-    if (!window.confirm(`Delete ${project.name}?`)) return;
+    const taskMessage = project._count.tasks > 0
+      ? `Delete ${project.name}? Its ${project._count.tasks} task${project._count.tasks === 1 ? "" : "s"} will be kept but unassigned.`
+      : `Delete ${project.name}?`;
+
+    if (!window.confirm(taskMessage)) return;
 
     try {
       await deleteProject(project.id);
