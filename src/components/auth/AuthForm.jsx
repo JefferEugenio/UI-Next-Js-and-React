@@ -40,7 +40,13 @@ export default function AuthForm({ mode }) {
         redirect: false,
       });
 
-      if (result?.error) throw new Error("Invalid email or password.");
+      if (result?.error) {
+        throw new Error(
+          result.error === "CredentialsSignin"
+            ? "Invalid email or password."
+            : "Sign in is temporarily unavailable. Try again shortly.",
+        );
+      }
       router.push("/");
       router.refresh();
     } catch (submitError) {

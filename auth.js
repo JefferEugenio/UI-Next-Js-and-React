@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./src/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   session: { strategy: "jwt" },
   providers: [
     Credentials({
@@ -16,23 +17,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email.toLowerCase() },
+          });
 
-        if (
-          !user ||
-          !(await bcrypt.compare(credentials.password, user.passwordHash))
-        ) {
+          if (
+            !user ||
+            !(await bcrypt.compare(credentials.password, user.passwordHash))
+          ) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error("Credentials authorization failed:", error);
           return null;
         }
-
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
       },
     }),
   ],
