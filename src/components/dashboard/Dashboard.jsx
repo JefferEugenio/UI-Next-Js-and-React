@@ -55,7 +55,7 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
       <section className="flex flex-col justify-between gap-6 border-b border-line pb-8 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-terracotta">Monday, September 7, 2026</p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">Good morning, {userName}.</h1>
+          <h1 className="mt-3 max-w-2xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">Hi, {userName}.</h1>
           <p className="mt-3 max-w-xl text-base leading-7 text-muted">{userRole === "ADMIN" ? "A complete view of your team's work and progress." : "A clear view of the work moving your team forward today."}</p>
           <span className="mt-3 inline-flex rounded-full bg-mist px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">{userRole}</span>
         </div>
