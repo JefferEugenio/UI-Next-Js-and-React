@@ -44,11 +44,11 @@ Set `AUTH_URL` to the deployed app URL. Run the database schema step against the
 npm run db:push
 ```
 
-The task API is protected by the authenticated user session. Users can create, read, update, and delete only their own tasks.
+The task API is protected by the authenticated user session. All signed-in users can view every task and project. `ADMIN` users can create, update, and delete tasks and projects. `VIEWER` users can only read.
 
 ## Roles
 
-New accounts receive the `VIEWER` role. Viewers can see the shared task dashboard and manage only their own tasks. `ADMIN` users can view and manage every task.
+New accounts receive the `VIEWER` role. Viewers can only view tasks and projects; they cannot create, edit, or delete anything. `ADMIN` users can manage tasks and projects.
 
 Promote an account to administrator directly in PostgreSQL:
 

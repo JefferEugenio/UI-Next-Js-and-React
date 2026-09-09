@@ -25,6 +25,15 @@ async function getAccessibleTask(id) {
     };
   }
 
+  if (session.user.role === "VIEWER") {
+    return {
+      error: Response.json(
+        { error: "Viewers can only read tasks." },
+        { status: 403 },
+      ),
+    };
+  }
+
   const taskId = Number(id);
   if (!Number.isInteger(taskId)) {
     return {
@@ -65,7 +74,10 @@ export async function PATCH(request, { params }) {
 
   const project = projectId
     ? await prisma.project.findFirst({
-        where: { id: projectId, userId },
+        where:
+          session.user.role === "ADMIN"
+            ? { id: projectId }
+            : { id: projectId, userId },
       })
     : null;
 

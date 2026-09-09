@@ -38,7 +38,7 @@ export default function TaskTable({ tasks, currentUserId, userRole, showActions 
                 </span>
               </td>
               {showActions && <td className="px-5 py-5 text-right">
-                {(userRole === "ADMIN" || task.userId === currentUserId) && (
+                {userRole === "ADMIN" && (
                   <>
                     <button type="button" onClick={() => onEdit(task)} className="mr-3 text-sm font-semibold text-terracotta hover:text-ink">Edit</button>
                     <button type="button" onClick={() => onDelete(task.id)} className="text-sm font-semibold text-muted hover:text-terracotta">Delete</button>

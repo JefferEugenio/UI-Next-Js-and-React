@@ -16,8 +16,10 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [startModalEditing, setStartModalEditing] = useState(false);
+  const canManageTasks = userRole === "ADMIN";
 
   function openCreateForm() {
+    if (!canManageTasks) return;
     setEditingTask(null);
     setIsFormOpen(true);
   }
@@ -33,6 +35,7 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
   }
 
   async function saveTask(task) {
+    if (!canManageTasks) return;
     if (editingTask) {
       await updateTask(editingTask.id, task);
     } else {
@@ -48,7 +51,7 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
     }
   }
 
-  const canEditSelectedTask = userRole === "ADMIN" || Number(selectedTask?.userId) === Number(userId);
+  const canEditSelectedTask = userRole === "ADMIN";
 
   const currentDate = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
@@ -66,7 +69,7 @@ export default function Dashboard({ userId, userName = "there", userRole = "VIEW
           <p className="mt-3 max-w-xl text-base leading-7 text-muted">{userRole === "ADMIN" ? "A complete view of your team's work and progress." : "A clear view of the work moving your team forward today."}</p>
           <span className="mt-3 inline-flex rounded-full bg-mist px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">{userRole}</span>
         </div>
-        <Button onClick={openCreateForm}>New task</Button>
+        {canManageTasks && <Button onClick={openCreateForm}>New task</Button>}
       </section>
 
       {isFormOpen && (

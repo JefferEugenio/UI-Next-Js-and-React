@@ -9,5 +9,5 @@ export default async function ProjectsPage() {
     redirect("/login");
   }
 
-  return <ProjectManager />;
+  return <ProjectManager userRole={session.user.role} />;
 }

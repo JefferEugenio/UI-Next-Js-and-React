@@ -13,7 +13,6 @@ export async function GET() {
     }
 
     const projects = await prisma.project.findMany({
-      where: { userId: Number(session.user.id) },
       include: { _count: { select: { tasks: true } } },
       orderBy: { name: "asc" },
     });
@@ -36,6 +35,13 @@ export async function POST(request) {
       return Response.json(
         { error: "You must be signed in." },
         { status: 401 },
+      );
+    }
+
+    if (session.user.role === "VIEWER") {
+      return Response.json(
+        { error: "Viewers can only view projects." },
+        { status: 403 },
       );
     }
 

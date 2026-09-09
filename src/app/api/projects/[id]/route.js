@@ -13,6 +13,15 @@ async function getOwnedProject(id) {
     };
   }
 
+  if (session.user.role === "VIEWER") {
+    return {
+      error: Response.json(
+        { error: "Viewers can only view projects." },
+        { status: 403 },
+      ),
+    };
+  }
+
   const projectId = Number(id);
   if (!Number.isInteger(projectId)) {
     return {
@@ -21,7 +30,10 @@ async function getOwnedProject(id) {
   }
 
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: Number(session.user.id) },
+    where:
+      session.user.role === "ADMIN"
+        ? { id: projectId }
+        : { id: projectId, userId: Number(session.user.id) },
     include: { _count: { select: { tasks: true } } },
   });
 

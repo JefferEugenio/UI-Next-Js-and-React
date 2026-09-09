@@ -60,4 +60,23 @@ describe("tasks API", () => {
     expect(response.status).toBe(400);
     expect(body.error).toContain("required");
   });
+
+  it("rejects viewers from creating tasks", async () => {
+    auth.mockResolvedValue({ user: { id: 1, role: "VIEWER" } });
+
+    const request = new Request("http://localhost/api/tasks", {
+      method: "POST",
+      body: JSON.stringify({
+        title: "Read-only task",
+        projectId: 1,
+        dueDate: "Sep 20, 2026",
+      }),
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toContain("Viewers");
+  });
 });

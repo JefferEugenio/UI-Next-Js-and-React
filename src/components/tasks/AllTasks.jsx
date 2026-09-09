@@ -50,7 +50,7 @@ export default function AllTasks({ userId, userRole }) {
     setSelectedTask(task);
   }
 
-  const canEditSelectedTask = userRole === "ADMIN" || Number(selectedTask?.userId) === Number(userId);
+  const canEditSelectedTask = userRole === "ADMIN";
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
